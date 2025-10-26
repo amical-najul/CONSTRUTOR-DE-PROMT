@@ -13,7 +13,7 @@ export const generateResponse = async (
     systemPrompt: string,
     userPrompt: string,
     activeContext: ContextItem | null,
-    toolsConfig: string,
+    tools: Tool[] | undefined,
 ): Promise<string> => {
     try {
         const model = 'gemini-2.5-flash';
@@ -35,31 +35,12 @@ export const generateResponse = async (
         }
         
         parts.push({ text: fullUserPrompt });
-        
-        let tools: Tool[] | undefined = undefined;
-        if (toolsConfig.trim()) {
-            try {
-                // The API expects the tools in a specific format, e.g., [{ functionDeclarations: [...] }]
-                const parsedTools = JSON.parse(toolsConfig);
-                // Basic validation to ensure it's an array
-                if (Array.isArray(parsedTools)) {
-                    tools = parsedTools;
-                } else {
-                    console.warn("Tools config is not a valid JSON array. Ignoring tools.");
-                }
-            } catch (e) {
-                console.error("Error parsing tools JSON:", e);
-                // Optionally return an error message to the user
-                return "Error: The provided Tools JSON is invalid. Please correct it and try again.";
-            }
-        }
 
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: model,
             contents: { parts: parts },
             config: {
                 systemInstruction: systemPrompt,
-                // FIX: The `tools` parameter has been correctly moved inside the `config` object.
                 ...(tools && { tools: tools }),
             },
         });

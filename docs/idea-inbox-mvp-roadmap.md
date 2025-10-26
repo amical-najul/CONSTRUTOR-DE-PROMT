@@ -1,6 +1,6 @@
 # AGENTE AI LENA: Roadmap & Architectural Overview
 
-_Current Version: 1.3.0_
+_Current Version: 1.4.0_
 
 This document outlines the vision, current functionality, architectural decisions, and future roadmap for the AGENTE AI LENA application.
 

@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0]
+
+### Added
+-   **Editable Agent Name:** The main title of the application can now be clicked and edited to rename the agent for the current session.
+
+### Changed
+-   **UI Polish & Theming:**
+    -   Renamed panels and tabs to Spanish for better thematic consistency (e.g., "Messages" to "Conversaciones").
+    -   Updated icons across the application for better visual clarity (e.g., a typewriter for conversations, a robot for instructions).
+-   **UX Improvements:**
+    -   The chat input area was redesigned to prevent the send button from overlapping the text field.
+    -   Configuration tabs ("Variables" and "Tools") are now arranged horizontally for a more standard layout.
+-   **Code Quality:**
+    -   Refactored the tool handling logic to pass objects directly instead of stringifying and re-parsing JSON, improving efficiency.
+    -   Corrected the HTML charset to `UTF-8`.
+
 ## [1.3.0]
 
 ### Added

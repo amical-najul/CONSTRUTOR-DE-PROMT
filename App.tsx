@@ -17,6 +17,7 @@ import {
     RobotIcon,
 } from './components/icons';
 import ReactMarkdown from 'react-markdown';
+import { Tool } from '@google/genai';
 
 const App: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -97,7 +98,7 @@ const App: React.FC = () => {
         setUserInput('');
         setIsLoading(true);
 
-        let toolsConfigString = '';
+        let apiTools: Tool[] | undefined = undefined;
         if (tools.length > 0) {
             const functionDeclarations: object[] = [];
             let parseError = false;
@@ -115,7 +116,7 @@ const App: React.FC = () => {
             }
             if (parseError) return;
             
-            toolsConfigString = JSON.stringify([{ functionDeclarations }]);
+            apiTools = [{ functionDeclarations }];
         }
 
         try {
@@ -125,7 +126,7 @@ const App: React.FC = () => {
                 systemPrompt,
                 currentInput,
                 activeContext,
-                toolsConfigString
+                apiTools
             );
             addMessage({ role: 'model', text: modelResponse });
         } catch (error) {
@@ -232,8 +233,8 @@ const App: React.FC = () => {
     };
     
     const textAreaClass = "w-full p-2 bg-[#282a36] border border-[#6272a4] rounded-md focus:outline-none focus:ring-2 focus:ring-[#bd93f9] resize-none text-sm text-[#f8f8f2] placeholder:text-gray-400";
-    const tabButtonClass = (isActive: boolean) => 
-        `flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-[#282a36] text-[#8be9fd]' : 'text-gray-400 hover:text-white'}`;
+    const tabButtonClass = (isActive: boolean) =>
+        `flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors rounded-t-lg -mb-px border border-transparent ${isActive ? 'bg-[#44475a] text-[#8be9fd] border-[#6272a4] border-b-[#44475a]' : 'text-gray-400 hover:text-white'}`;
 
     return (
         <div className="h-screen bg-[#282a36] text-[#f8f8f2] flex flex-col font-sans antialiased">
@@ -256,7 +257,7 @@ const App: React.FC = () => {
                         {agentName}
                     </h1>
                 )}
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-mono">V. 1.3.0</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-mono">V. 1.4.0</span>
             </header>
             <main className="flex-grow grid grid-cols-5 gap-4 p-4 min-h-0">
                 {/* Left Column */}
@@ -278,17 +279,17 @@ const App: React.FC = () => {
                             <div ref={messagesEndRef} />
                         </div>
                         <div className="p-4 border-t border-[#6272a4] flex-shrink-0">
-                            <div className="relative">
+                            <div className="flex items-end gap-2">
                                 <textarea
                                     value={userInput}
                                     onChange={(e) => setUserInput(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    className={`${textAreaClass} pr-12`}
+                                    className={`${textAreaClass} flex-grow`}
                                     placeholder={`Interactúa con ${agentName}...`}
                                     rows={1}
                                     disabled={isLoading}
                                 />
-                                <button onClick={handleSendMessage} disabled={isLoading || !userInput.trim()} className="absolute right-2 bottom-2 p-2 rounded-md bg-[#50fa7b] text-[#282a36] disabled:bg-gray-500 hover:bg-[#69ff8c] transition-colors">
+                                <button onClick={handleSendMessage} disabled={isLoading || !userInput.trim()} className="p-2 rounded-md bg-[#50fa7b] text-[#282a36] disabled:bg-gray-500 hover:bg-[#69ff8c] transition-colors flex-shrink-0">
                                     <SendIcon className="w-5 h-5" />
                                 </button>
                             </div>
@@ -322,18 +323,18 @@ const App: React.FC = () => {
 
                             {/* Right Sub-panel: Context & Tools */}
                             <div className="w-1/2 flex flex-col">
-                                <div className="flex-shrink-0 border-b border-[#6272a4] flex justify-between items-center pr-2">
-                                    <div>
+                                <div className="flex-shrink-0 border-b border-[#6272a4] flex justify-between items-end pr-2">
+                                    <div className="flex">
                                         <button onClick={() => setActiveConfigTab('context')} className={tabButtonClass(activeConfigTab === 'context')}>
                                             <InputVariablesIcon className="w-4 h-4" />
                                             Variables
                                         </button>
                                         <button onClick={() => setActiveConfigTab('tools')} className={tabButtonClass(activeConfigTab === 'tools')}>
                                             <WrenchIcon className="w-4 h-4" />
-                                            Herramientas
+                                            Tools
                                         </button>
                                     </div>
-                                    <div className="flex items-center">
+                                    <div className="flex items-center pb-1">
                                         {activeConfigTab === 'context' && (
                                             <>
                                                 <button onClick={handleAddTextContext} title="Añadir Variable de Texto" className="p-1 rounded-md hover:bg-[#6272a4] transition-colors">
