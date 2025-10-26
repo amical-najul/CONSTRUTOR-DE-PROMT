@@ -1,0 +1,5 @@
+{
+  "name": "AGENTE AI LENA",
+  "description": "An interactive web application to interface with AGENTE AI LENA, an AI agent. Users can chat, provide system prompts, and upload files to guide the agent's operations.",
+  "requestFramePermissions": []
+}
