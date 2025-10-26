@@ -15,6 +15,7 @@ import {
     SparklesIcon,
     UploadIcon,
     RobotIcon,
+    PencilIcon,
 } from './icons';
 import ReactMarkdown from 'react-markdown';
 import { Tool } from '@google/genai';
@@ -37,6 +38,7 @@ const MainInterface: React.FC = () => {
     // New state for prompt instruction feature
     const [promptInstruction, setPromptInstruction] = useState('');
     const [isModifyingPrompt, setIsModifyingPrompt] = useState(false);
+    const [isPromptEditable, setIsPromptEditable] = useState(false);
     
     // State for editable agent name
     const [agentName, setAgentName] = useState('AGENTE AI LENA');
@@ -419,13 +421,30 @@ const MainInterface: React.FC = () => {
 
                 {/* Right Column */}
                 <div className="col-span-3 flex flex-col min-h-0">
-                    <Panel title="Agent Prompt" icon={<BrainCircuitIcon className="w-6 h-6 text-[#50fa7b]" />} className="flex-grow">
+                    <Panel 
+                        title="Agent Prompt" 
+                        icon={<BrainCircuitIcon className="w-6 h-6 text-[#50fa7b]" />} 
+                        className="flex-grow"
+                        actions={
+                            <button 
+                                onClick={() => setIsPromptEditable(prev => !prev)} 
+                                title={isPromptEditable ? "Disable Manual Editing" : "Enable Manual Editing"} 
+                                className={`p-1 rounded-md transition-colors ${isPromptEditable ? 'bg-[#ffb86c] text-black' : 'hover:bg-[#6272a4]'}`}
+                            >
+                                <PencilIcon className="w-5 h-5" />
+                            </button>
+                        }
+                    >
                         <div className="p-4 h-full">
                             <textarea
+                                readOnly={!isPromptEditable}
                                 value={systemPrompt}
                                 onChange={(e) => setSystemPrompt(e.target.value)}
-                                className={`${textAreaClass} h-full`}
-                                placeholder="Define el rol, personalidad e instrucciones del agente aquí..."
+                                className={`${textAreaClass} h-full ${isPromptEditable ? 'bg-[#282a36] cursor-text' : 'bg-[#21222C] cursor-not-allowed'}`}
+                                placeholder={isPromptEditable 
+                                    ? "Edición manual activada. Realiza tus ajustes aquí." 
+                                    : "Este prompt se modifica usando el panel de 'Instrucciones del Prompt' a la izquierda."
+                                }
                             />
                         </div>
                     </Panel>
