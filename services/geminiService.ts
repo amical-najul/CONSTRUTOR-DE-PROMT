@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Tool } from "@google/genai";
-import { UploadedFile } from '../types';
+import { ContextItem } from '../types';
 
 if (!process.env.API_KEY) {
     // In a real application, you would throw an error or handle this case appropriately.
@@ -12,27 +12,29 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 export const generateResponse = async (
     systemPrompt: string,
     userPrompt: string,
-    file: UploadedFile | null,
-    contextText: string,
+    activeContext: ContextItem | null,
     toolsConfig: string,
 ): Promise<string> => {
     try {
         const model = 'gemini-2.5-flash';
         
-        const fullUserPrompt = contextText 
-            ? `[CONTEXT PROVIDED]\n${contextText}\n\n[USER QUERY]\n${userPrompt}` 
-            : userPrompt;
+        let fullUserPrompt = userPrompt;
+        const parts: any[] = [];
 
-        const parts: any[] = [{ text: fullUserPrompt }];
-
-        if (file) {
-            parts.unshift({
-                inlineData: {
-                    mimeType: file.type,
-                    data: file.base64,
-                },
-            });
+        if (activeContext) {
+            if (activeContext.type === 'text') {
+                 fullUserPrompt = `[CONTEXT PROVIDED]\n${activeContext.content}\n\n[USER QUERY]\n${userPrompt}`;
+            } else if (activeContext.type === 'file' && activeContext.fileDetails) {
+                 parts.unshift({
+                    inlineData: {
+                        mimeType: activeContext.fileDetails.type,
+                        data: activeContext.content, // content is the base64 string
+                    },
+                });
+            }
         }
+        
+        parts.push({ text: fullUserPrompt });
         
         let tools: Tool[] | undefined = undefined;
         if (toolsConfig.trim()) {
@@ -72,5 +74,41 @@ export const generateResponse = async (
     } catch (error) {
         console.error("Error generating response from Gemini:", error);
         return "Sorry, I encountered an error while processing your request. Please check the console for details.";
+    }
+};
+
+/**
+ * Generates a new system prompt by applying a user's instruction to an existing prompt.
+ * @param currentPrompt The current system prompt.
+ * @param instruction The user's instruction for modification.
+ * @returns The rewritten system prompt.
+ */
+export const generatePromptFromInstruction = async (
+    currentPrompt: string,
+    instruction: string,
+): Promise<string> => {
+    try {
+        const model = 'gemini-2.5-flash';
+        const metaPrompt = `You are an AI assistant that expertly rewrites system prompts based on user instructions.
+        Given the current system prompt and a modification instruction, rewrite the prompt to incorporate the instruction.
+        Only return the full, rewritten prompt text. Do not add any extra commentary, formatting, or markdown.
+
+        [CURRENT PROMPT]
+        ${currentPrompt}
+
+        [INSTRUCTION]
+        ${instruction}
+
+        [REWRITTEN PROMPT]`;
+
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: model,
+            contents: { parts: [{ text: metaPrompt }] },
+        });
+
+        return response.text.trim();
+    } catch (error) {
+        console.error("Error generating prompt from instruction:", error);
+        return "Sorry, I encountered an error while modifying the prompt.";
     }
 };

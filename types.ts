@@ -15,3 +15,11 @@ export interface ToolConfig {
   name: string;
   jsonConfig: string;
 }
+
+export interface ContextItem {
+  id: string;
+  name: string;
+  type: 'text' | 'file';
+  content: string; // For text, this is the text. For file, this is the base64 string.
+  fileDetails?: Omit<UploadedFile, 'base64'>; // Store metadata for files
+}

@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0]
+
+### Added
+-   **AI-Assisted Prompt Engineering:** Introduced a new "Prompt Instructions" panel. Users can now provide natural language instructions to an AI to automatically rewrite and refine the main "Agent Prompt".
+-   Added `SparklesIcon` to visually represent the AI-powered prompt modification action.
+
+### Changed
+-   **UI Refactor for Agent Configuration:** The "Agent Configuration" panel has been split into two sub-panels. The new "Prompt Instructions" feature is on the left, and the existing "Context Items" and "Agent Tools & APIs" tabs are now consolidated on the right.
+
+## [1.2.0]
+
+### Changed
+-   **UI Refactor for Context Management:** Reworked the "Context Items" panel to use the same list-detail pattern as the Agent Tools. Users can now manage a list of multiple context items (both text and files), select an "active" context to be sent with a prompt, and edit text context in a dedicated modal window.
+
+### Added
+-   **Context Edit Modal:** Created a new `ContextEditModal` component for a focused text context editing experience.
+-   **Multi-Context Selection:** Implemented logic to handle a list of context items and track the currently active one.
+
 ## [1.1.0]
 
 ### Changed
