@@ -1,0 +1,22 @@
+Resumen de la Lógica del "Playground"
+La lógica central de esta interfaz es un ciclo de retroalimentación inmediata diseñado para acortar drásticamente el ciclo de desarrollo de un agente conversacional mediante la Ingeniería de Prompts (Prompt Engineering). El objetivo es "esculpir" el comportamiento del modelo de lenguaje (LLM) en tiempo real.
+Componente Clave,Función Principal,Lógica Operacional
+1. Panel de Configuración (Agent Configuration),"Definir la personalidad, reglas y capacidades (Tools y Variables) del agente.",El input directo para el comportamiento del agente.
+2. Panel Principal (Agent Prompt),Mostrar el prompt de sistema completo y final que recibe el LLM (no editable).,Combina el prompt base con las instrucciones del Panel 1.
+3. Panel de Chat (Conversaciones),Campo de pruebas en tiempo real e interacción.,Envía el Agent Prompt (Panel 2) + el mensaje del usuario al LLM para validación inmediata.
+El Ciclo de Retroalimentación
+El flujo de trabajo es constante e iterativo, permitiendo el ajuste fino del comportamiento del agente:
+
+Definir 📝: Escribir las reglas en el "Panel de Configuración".
+
+Aplicar ✅: Guardar las reglas (actualizar el Agent Prompt).
+
+Probar 💬: Chatear con el agente en "Conversaciones".
+
+Observar 🧐: Analizar si la respuesta se adhiere a las reglas definidas.
+
+Refinar ⚙️: Si no funciona, volver al paso 1, ajustar el prompt y repetir.
+
+Objetivo: Lograr agilidad (probar múltiples variaciones rápidamente) y precisión (ajustar sutilmente el comportamiento) para transformar un LLM general (como Gemini) en un agente especializado y robusto.
+
+Implementación Visual: He creado una nueva vista en la sección de "Configuraciones". Esta vista ahora muestra la tabla con las reglas de negocio y el ciclo de retroalimentación, exactamente como en la imagen que proporcionaste. Esto sirve como una guía clara y accesible para que cualquier usuario entienda cómo funciona la aplicación.

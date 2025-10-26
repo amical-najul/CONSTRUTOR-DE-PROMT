@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0]
+
+### Added
+-   **Multi-View Architecture:** The application has been refactored to support multiple views, managed by a new persistent navigation sidebar on the left.
+-   **Scalable Foundation:** The original interface is now encapsulated in a "Principal" view, with placeholders for future "Flujos" and "Configuraciones" sections. This prepares the application for significant future feature expansion.
+
+### Changed
+-   The main `App.tsx` component now acts as a view router, improving code organization and separation of concerns.
+
 ## [1.4.0]
 
 ### Added

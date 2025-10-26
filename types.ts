@@ -23,3 +23,5 @@ export interface ContextItem {
   content: string; // For text, this is the text. For file, this is the base64 string.
   fileDetails?: Omit<UploadedFile, 'base64'>; // Store metadata for files
 }
+
+export type AppView = 'principal' | 'flujos' | 'configuraciones';
