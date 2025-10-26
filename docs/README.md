@@ -14,7 +14,9 @@
 -   **Advanced Context Management:** Persistently manage a list of multiple context items.
     -   **Text & File Support:** Create context from both text snippets and uploaded files (images, documents).
     -   **One-Click Activation:** Easily switch between different contexts by selecting the "active" one from your list.
--   **Extensible Tooling (Function Calling):** Define custom tools and functions using a clean, scalable list-detail interface. The AI can request to use these tools to interact with external APIs or systems, and the application will display the structured function call request.
+-   **Extensible Tooling (Function Calling):**
+    -   **Structured Tool Builder:** Define custom tools and functions in a dedicated "Herramientas" section with a user-friendly form.
+    -   **Dynamic Activation:** In the main interface, toggle tools on or off for the current session. Only active tools are made available to the agent.
 
 ---
 
@@ -31,7 +33,7 @@ The interface is divided into three main sections for maximum efficiency:
     -   **Prompt Instructions (Left side):** Type a command (e.g., "Make the agent speak like a pirate") and click "Apply Instructions". The AI will automatically rewrite the main "Agent Prompt" on the right.
     -   **Configuration (Right side):**
         -   **Context Items Tab:** Manage a list of context items. Add text or upload files. Click any item to mark it as **active** (it will be sent with your next message).
-        -   **Agent Tools & APIs Tab:** Manage the agent's tools. Click `+` to add a new tool or click an existing one to open a modal for editing.
+        -   **Agent Tools & APIs Tab:** Manage the agent's tools. Use the **toggle switch** next to each tool to activate or deactivate it for the current conversation.
 
 3.  **Agent Prompt Panel (Right):**
     -   Write and edit the **System Prompt** here. This is the master instruction that guides the AI's behavior. You can edit it manually or have it modified by the "Prompt Instructions" feature.

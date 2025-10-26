@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Message, ContextItem, ToolConfig } from '../types';
+import { Message, ContextItem, WebhookTool } from '../types';
 import { generateResponse, generatePromptFromInstruction } from '../services/geminiService';
 import Panel from './Panel';
-import ToolEditModal from './ToolEditModal';
 import ContextEditModal from './ContextEditModal';
 import { 
     BrainCircuitIcon, 
@@ -18,9 +17,13 @@ import {
     PencilIcon,
 } from './icons';
 import ReactMarkdown from 'react-markdown';
-import { Tool } from '@google/genai';
+import { Tool, Type } from '@google/genai';
 
-const MainInterface: React.FC = () => {
+interface MainInterfaceProps {
+    tools: WebhookTool[];
+}
+
+const MainInterface: React.FC<MainInterfaceProps> = ({ tools }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [userInput, setUserInput] = useState('');
     const [systemPrompt, setSystemPrompt] = useState('You are AGENTE AI LENA, a helpful and friendly AI assistant.');
@@ -29,11 +32,12 @@ const MainInterface: React.FC = () => {
     const [contextItems, setContextItems] = useState<ContextItem[]>([]);
     const [activeContextId, setActiveContextId] = useState<string | null>(null);
     const [editingContext, setEditingContext] = useState<ContextItem | null>(null);
+
+    // State for active tools
+    const [activeToolIds, setActiveToolIds] = useState(() => new Set(tools.map(t => t.id)));
     
-    const [tools, setTools] = useState<ToolConfig[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [activeConfigTab, setActiveConfigTab] = useState<'context' | 'tools'>('context');
-    const [editingTool, setEditingTool] = useState<ToolConfig | null>(null);
 
     // New state for prompt instruction feature
     const [promptInstruction, setPromptInstruction] = useState('');
@@ -92,6 +96,18 @@ const MainInterface: React.FC = () => {
         }
     };
 
+    const handleToggleTool = (toolId: string) => {
+        setActiveToolIds(prevIds => {
+            const newIds = new Set(prevIds);
+            if (newIds.has(toolId)) {
+                newIds.delete(toolId);
+            } else {
+                newIds.add(toolId);
+            }
+            return newIds;
+        });
+    };
+
     const handleSendMessage = async () => {
         if (isLoading || !userInput.trim()) return;
 
@@ -101,23 +117,35 @@ const MainInterface: React.FC = () => {
         setIsLoading(true);
 
         let apiTools: Tool[] | undefined = undefined;
-        if (tools.length > 0) {
-            const functionDeclarations: object[] = [];
-            let parseError = false;
-            for (const tool of tools) {
-                try {
-                    functionDeclarations.push(JSON.parse(tool.jsonConfig));
-                } catch (e) {
-                    const errorMsg = `Error: Invalid JSON in tool "${tool.name}". Please fix it.`;
-                    addMessage({ role: 'model', text: errorMsg });
-                    console.error(errorMsg, e);
-                    setIsLoading(false);
-                    parseError = true;
-                    break;
-                }
-            }
-            if (parseError) return;
-            
+        const activeTools = tools.filter(tool => activeToolIds.has(tool.id));
+
+        if (activeTools.length > 0) {
+            const functionDeclarations = activeTools.map(tool => {
+                const properties: { [key: string]: { type: Type, description: string } } = {};
+                const required: string[] = [];
+        
+                tool.parameters.forEach(param => {
+                    if (param.name) {
+                        properties[param.name] = {
+                            type: param.type,
+                            description: param.description,
+                        };
+                        if (param.required) {
+                            required.push(param.name);
+                        }
+                    }
+                });
+        
+                return {
+                    name: tool.name,
+                    description: tool.description,
+                    parameters: {
+                        type: Type.OBJECT,
+                        properties: properties,
+                        required: required,
+                    },
+                };
+            });
             apiTools = [{ functionDeclarations }];
         }
 
@@ -182,26 +210,6 @@ const MainInterface: React.FC = () => {
         }
     };
 
-    // Tool handlers
-    const handleAddTool = () => {
-        const newTool: ToolConfig = {
-            id: `tool-${Date.now()}`,
-            name: `New Tool ${tools.length + 1}`,
-            jsonConfig: '{\n  "name": "your_function_name",\n  "description": "A description of the function.",\n  "parameters": {\n    "type": "OBJECT",\n    "properties": {\n      "param1": {\n        "type": "STRING",\n        "description": "Description of param1."\n      }\n    },\n    "required": ["param1"]\n  }\n}',
-        };
-        setTools(prev => [...prev, newTool]);
-        setEditingTool(newTool);
-    };
-
-    const handleDeleteTool = (id: string) => {
-        setTools(prev => prev.filter(tool => tool.id !== id));
-    };
-
-    const handleSaveTool = (updatedTool: ToolConfig) => {
-        setTools(prev => prev.map(tool => tool.id === updatedTool.id ? updatedTool : tool));
-        setEditingTool(null);
-    };
-
     // Context handlers
     const handleAddTextContext = () => {
         const newContext: ContextItem = {
@@ -234,7 +242,7 @@ const MainInterface: React.FC = () => {
         // No modal for files, just activation
     };
     
-    const textAreaClass = "w-full p-2 bg-[#282a36] border border-[#6272a4] rounded-md focus:outline-none focus:ring-2 focus:ring-[#bd93f9] resize-none text-sm text-[#f8f8f2] placeholder:text-gray-400";
+    const textAreaClass = "w-full p-2 bg-[#282a36] border border-[#6272a4] rounded-md focus:outline-none focus:ring-2 focus:ring-[#bd93f9] resize-none text-sm text-[#f8f82] placeholder:text-gray-400";
     const tabButtonClass = (isActive: boolean) =>
         `flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors rounded-t-lg -mb-px border border-transparent ${isActive ? 'bg-[#44475a] text-[#8be9fd] border-[#6272a4] border-b-[#44475a]' : 'text-gray-400 hover:text-white'}`;
 
@@ -259,7 +267,7 @@ const MainInterface: React.FC = () => {
                         {agentName}
                     </h1>
                 )}
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-mono">V. 1.5.0</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-mono">V. 1.6.0</span>
             </header>
             <div className="flex-grow grid grid-cols-5 gap-4 p-4 min-h-0">
                 {/* Left Column */}
@@ -334,6 +342,11 @@ const MainInterface: React.FC = () => {
                                         <button onClick={() => setActiveConfigTab('tools')} className={tabButtonClass(activeConfigTab === 'tools')}>
                                             <WrenchIcon className="w-4 h-4" />
                                             Tools
+                                            {tools.length > 0 && (
+                                                <span className="ml-2 bg-[#ff79c6] text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                                    {activeToolIds.size}
+                                                </span>
+                                            )}
                                         </button>
                                     </div>
                                     <div className="flex items-center pb-1">
@@ -347,11 +360,6 @@ const MainInterface: React.FC = () => {
                                                     <UploadIcon className="w-5 h-5 text-[#8be9fd]" />
                                                 </button>
                                             </>
-                                        )}
-                                        {activeConfigTab === 'tools' && (
-                                            <button onClick={handleAddTool} title="Añadir Herramienta" className="p-1 rounded-md hover:bg-[#6272a4] transition-colors">
-                                                <PlusIcon className="w-5 h-5 text-[#50fa7b]" />
-                                            </button>
                                         )}
                                     </div>
                                 </div>
@@ -391,27 +399,38 @@ const MainInterface: React.FC = () => {
                                 {activeConfigTab === 'tools' && (
                                     <div className="flex-grow overflow-y-auto p-2 space-y-2">
                                        {tools.length === 0 ? (
-                                            <div className="flex items-center justify-center h-full text-gray-400 text-sm">Click en '+' para añadir una herramienta.</div>
-                                       ) : (
-                                           tools.map(tool => (
-                                            <div 
-                                                key={tool.id} 
-                                                className="flex justify-between items-center bg-[#282a36] p-3 rounded-md border border-transparent hover:border-[#6272a4] cursor-pointer transition-colors"
-                                                onClick={() => setEditingTool(tool)}
-                                            >
-                                                <span className="font-semibold text-sm truncate">{tool.name}</span>
-                                                <button 
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteTool(tool.id);
-                                                    }} 
-                                                    title={`Borrar ${tool.name}`}
-                                                    className="p-1 text-gray-400 hover:text-[#ff5555] rounded-full"
-                                                >
-                                                    <TrashIcon className="w-4 h-4" />
-                                                </button>
+                                            <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm text-center px-4">
+                                                <p>No hay herramientas disponibles.</p>
+                                                <p>Vaya a la sección 'Herramientas' para configurarlas.</p>
                                             </div>
-                                        )))}
+                                       ) : (
+                                           tools.map(tool => {
+                                            const isToolActive = activeToolIds.has(tool.id);
+                                            return (
+                                                <div 
+                                                    key={tool.id} 
+                                                    className="flex justify-between items-center bg-[#282a36] p-3 rounded-md"
+                                                >
+                                                    <div className="flex items-center min-w-0">
+                                                        <WrenchIcon className="w-4 h-4 mr-2 flex-shrink-0 text-gray-400" />
+                                                        <span className="font-semibold text-sm truncate text-gray-300">{tool.name}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleToggleTool(tool.id)}
+                                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#44475a] focus:ring-[#8be9fd] ${
+                                                            isToolActive ? 'bg-[#50fa7b]' : 'bg-gray-600'
+                                                        }`}
+                                                        aria-pressed={isToolActive}
+                                                    >
+                                                        <span
+                                                            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                            isToolActive ? 'translate-x-5' : 'translate-x-0'
+                                                            }`}
+                                                        />
+                                                    </button>
+                                                </div>
+                                            );
+                                        }))}
                                    </div>
                                 )}
                             </div>
@@ -450,13 +469,6 @@ const MainInterface: React.FC = () => {
                     </Panel>
                 </div>
             </div>
-            {editingTool && (
-                <ToolEditModal 
-                    tool={editingTool}
-                    onSave={handleSaveTool}
-                    onCancel={() => setEditingTool(null)}
-                />
-            )}
              {editingContext && (
                 <ContextEditModal 
                     contextItem={editingContext}

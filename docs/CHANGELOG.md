@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0]
+
+### Added
+-   **Dynamic Tool Activation:** Users can now enable or disable specific tools for the current chat session directly from the 'Principal' view. A toggle switch is provided for each tool, and only the active tools are sent to the Gemini model, allowing for more granular control over the agent's capabilities.
+
 ## [1.5.0]
 
 ### Added

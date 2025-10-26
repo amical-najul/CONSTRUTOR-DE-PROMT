@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, GenerateContentResponse, Tool } from "@google/genai";
 import { ContextItem } from '../types';
 
@@ -18,27 +19,29 @@ export const generateResponse = async (
     try {
         const model = 'gemini-2.5-flash';
         
-        let fullUserPrompt = userPrompt;
-        const parts: any[] = [];
+        let promptText = userPrompt;
+        let imagePart = null;
 
         if (activeContext) {
             if (activeContext.type === 'text') {
-                 fullUserPrompt = `[CONTEXT PROVIDED]\n${activeContext.content}\n\n[USER QUERY]\n${userPrompt}`;
+                 promptText = `[CONTEXT PROVIDED]\n${activeContext.content}\n\n[USER QUERY]\n${userPrompt}`;
             } else if (activeContext.type === 'file' && activeContext.fileDetails) {
-                 parts.unshift({
+                 imagePart = {
                     inlineData: {
                         mimeType: activeContext.fileDetails.type,
                         data: activeContext.content, // content is the base64 string
                     },
-                });
+                };
             }
         }
         
-        parts.push({ text: fullUserPrompt });
+        // FIX: Simplify `contents` parameter for generateContent.
+        // For text-only, pass a string. For multimodal, pass an object with a `parts` array.
+        const contents = imagePart ? { parts: [imagePart, { text: promptText }] } : promptText;
 
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: model,
-            contents: { parts: parts },
+            contents: contents,
             config: {
                 systemInstruction: systemPrompt,
                 ...(tools && { tools: tools }),
@@ -82,9 +85,10 @@ export const generatePromptFromInstruction = async (
 
         [REWRITTEN PROMPT]`;
 
+        // FIX: Simplify `contents` for text-only prompts to be a string.
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: model,
-            contents: { parts: [{ text: metaPrompt }] },
+            contents: metaPrompt,
         });
 
         return response.text.trim();

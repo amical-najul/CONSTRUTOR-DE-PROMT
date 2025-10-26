@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppView } from '../types';
-import { HomeIcon, FlowsIcon, SettingsIcon } from './icons';
+import { HomeIcon, FlowsIcon, SettingsIcon, ToolboxIcon } from './icons';
 
 interface SidebarProps {
   activeView: AppView;
@@ -11,6 +11,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) => {
   const navItems = [
     { view: 'principal' as AppView, icon: HomeIcon, label: 'Principal' },
     { view: 'flujos' as AppView, icon: FlowsIcon, label: 'Flujos' },
+    { view: 'tools' as AppView, icon: ToolboxIcon, label: 'Herramientas' },
     { view: 'configuraciones' as AppView, icon: SettingsIcon, label: 'Configuraciones' },
   ];
 
